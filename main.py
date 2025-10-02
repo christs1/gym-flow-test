@@ -7,11 +7,39 @@ import numpy as np
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
+# cap = cv2.VideoCapture(0)
+# while cap.isOpened():
+#     ret, frame = cap.read()
+#     cv2.imshow('Mediapipe Feed', frame)
+#     if cv2.waitKey(10) & 0xFF == ord('q'):
+#         break
+# cap.release()
+# cv2.destroyAllWindows()
+
 cap = cv2.VideoCapture(0)
-while cap.isOpened():
-    ret, frame = cap.read()
-    cv2.imshow('Raw Webcam Feed', frame)
-    if cv2.waitKey(10) & 0xFF == ord('q'):
-        break
+with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+    while cap.isOpened():
+        ret, frame = cap.read()
+
+        # --------- detection and redering ------------------------------------------------ 
+        #recolor image to RGB
+        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        image.flags.writeable = False
+
+        #make detection
+        results = pose.process(image)
+
+        #recolor back to BGR
+        image.flags.writeable = True
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+        #render detections
+        mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+
+
+        
+        cv2.imshow('Mediapipe Feed', image)
+        if cv2.waitKey(10) & 0xFF == ord('q'):
+            break
 cap.release()
 cv2.destroyAllWindows()
